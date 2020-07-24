@@ -116,7 +116,6 @@ if ! shopt -oq posix; then
   fi
 fi
 
-PATH=$PATH":/home/maxk/.local/bin"
 function getpass {
 	echo $1 | md5sum | head -c 32 | xclip -sel clip
 }
