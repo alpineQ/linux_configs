@@ -35,6 +35,8 @@ nnoremap <C-H> <C-W><C-H>
 set foldmethod=indent
 set foldlevel=99
 
+noremap <leader>\ :update<CR>
+
 " Enable folding with the spacebar
 nnoremap <space> za
 
