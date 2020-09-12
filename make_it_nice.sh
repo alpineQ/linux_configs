@@ -1,7 +1,7 @@
 cp .bashrc ~
 sudo apt update
 sudo apt upgrade
-sudo apt install -y build-essential cmake vim python3-dev git tmux docker docker-compose nodejs npm xclip golang
+sudo apt install -y build-essential cmake vim python3-dev git tmux docker docker-compose nodejs npm xclip golang ktorrent
 
 if [ ! -d "$HOME/.ssh" ]; then
     ssh-keygen -b 2048 -t rsa -q -N ""
@@ -19,7 +19,10 @@ sudo npm install -g livedown
 echo "Make :PluginInstall" > vim.tmp
 vim vim.tmp
 rm vim.tmp
-python3 ~/.vim/bundle/YouCompleteMe/install.py
+(
+cd ~/.vim/bundle/YouCompleteMe || exit
+python3 install.py --all
+)
 
 echo Setting up tmux stuff
 git clone https://github.com/gpakosz/.tmux.git
