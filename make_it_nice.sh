@@ -1,7 +1,7 @@
 cp .bashrc ~
 sudo apt update
 sudo apt upgrade
-sudo apt install -y build-essential cmake vim python3-dev git tmux docker docker-compose nodejs npm xclip
+sudo apt install -y build-essential cmake vim python3-dev git tmux docker docker-compose nodejs npm xclip golang
 
 if [ ! -d "$HOME/.ssh" ]; then
     ssh-keygen -b 2048 -t rsa -q -N ""
@@ -29,4 +29,5 @@ cp .tmux/.tmux.conf.local .
 sudo snap install pycharm-community --classic
 sudo snap install vs-code --classic
 sudo snap install telegram-desktop
+sudo snap install wps-office-all-lang-no-internet
 sudo docker pull python:3.8.5-alpine golang:1.15.2-alpine
