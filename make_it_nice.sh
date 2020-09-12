@@ -21,16 +21,16 @@ vim vim.tmp
 rm vim.tmp
 (
 cd ~/.vim/bundle/YouCompleteMe || exit
-python3 install.py --all
+python3 install.py
 )
 
 echo Setting up tmux stuff
 git clone https://github.com/gpakosz/.tmux.git
 ln -s -f .tmux/.tmux.conf
-cp .tmux/.tmux.conf.local .
+cp .tmux/.tmux.conf.local ~
 
 sudo snap install pycharm-community --classic
-sudo snap install vs-code --classic
+sudo snap install code --classic
 sudo snap install telegram-desktop
 sudo snap install wps-office-all-lang-no-internet
 sudo docker pull python:3.8.5-alpine golang:1.15.2-alpine
