@@ -1,7 +1,9 @@
 cp .bashrc ~
+sudo apt update
+sudo apt upgrade
 sudo apt install -y build-essential cmake vim python3-dev git tmux docker docker-compose nodejs npm xclip
 
-if [ ! -d "$HOME/.ssh"]; then
+if [ ! -d "$HOME/.ssh" ]; then
     ssh-keygen -b 2048 -t rsa -q -N ""
 fi
 
@@ -12,7 +14,7 @@ sudo usermod -aG docker $USER
 
 echo Setting up vim stuff
 cp .vimrc ~
-git clone https://github.com/VundleVim/Vundle.vim.git .vim/bundle/Vundle.vim
+git clone https://github.com/VundleVim/Vundle.vim.git ~/.vim/bundle/Vundle.vim
 sudo npm install -g livedown
 echo "Make :PluginInstall" > vim.tmp
 vim vim.tmp
