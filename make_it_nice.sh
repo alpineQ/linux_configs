@@ -25,3 +25,8 @@ echo Setting up tmux stuff
 git clone https://github.com/gpakosz/.tmux.git
 ln -s -f .tmux/.tmux.conf
 cp .tmux/.tmux.conf.local .
+
+sudo snap install pycharm-community --classic
+sudo snap install vs-code --classic
+sudo snap install telegram-desktop
+sudo docker pull python:3.8.5-alpine golang:1.15.2-alpine
