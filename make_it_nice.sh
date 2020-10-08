@@ -17,12 +17,12 @@ cp .vimrc ~
 git clone https://github.com/VundleVim/Vundle.vim.git ~/.vim/bundle/Vundle.vim
 sudo npm install -g livedown
 echo "Make :PluginInstall" > vim.tmp
-vim vim.tmp
-rm vim.tmp
 (
 cd ~/.vim/bundle/YouCompleteMe || exit
 python3 install.py
 )
+vim vim.tmp
+rm vim.tmp
 
 echo Setting up tmux stuff
 git clone https://github.com/gpakosz/.tmux.git
