@@ -33,4 +33,3 @@ sudo snap install pycharm-community --classic
 sudo snap install code --classic
 sudo snap install telegram-desktop
 sudo snap install wps-office-all-lang-no-internet
-sudo docker pull python:3.8.5-alpine golang:1.15.2-alpine
