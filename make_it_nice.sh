@@ -1,6 +1,6 @@
 cp .bashrc ~
 sudo apt update
-sudo apt upgrade
+sudo apt upgrade -y
 sudo apt install -y build-essential cmake vim python3-dev git tmux docker docker-compose nodejs npm xclip golang ktorrent
 
 if [ ! -d "$HOME/.ssh" ]; then
