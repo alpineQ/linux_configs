@@ -116,6 +116,7 @@ if ! shopt -oq posix; then
   fi
 fi
 
-function getpass {
+function gethash {
 	echo $1 | md5sum | head -c 32 | xclip -sel clip
+	exit
 }
