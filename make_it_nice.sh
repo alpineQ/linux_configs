@@ -31,6 +31,12 @@ cp .tmux/.tmux.conf.local ~
 
 sudo snap install pycharm-community --classic
 sudo snap install code --classic
+code --install-extension octref.vetur
+code --install-extension dbaeumer.vscode-eslint
+code --install-extension vscodevim.vim
+code --install-extension ms-python.python
+code --install-extension golang.go
+code --install-extension ms-azuretools.vscode-docker
 sudo snap install telegram-desktop
 sudo snap install wps-office-all-lang-no-internet
 sudo snap install spotify
