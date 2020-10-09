@@ -4,7 +4,7 @@ sudo apt upgrade -y
 sudo apt install -y build-essential cmake vim python3-dev git tmux docker docker-compose nodejs npm xclip golang ktorrent net-tools
 
 if [ ! -d "$HOME/.ssh" ]; then
-    ssh-keygen -b 2048 -t rsa -q -N ""
+    ssh-keygen -b 2048 -t rsa -f "/home/$USER/.ssh/id_rsa" -q -N ""
 fi
 
 git config --global user.email "mk_dev@mail.ru"
