@@ -12,9 +12,9 @@ git config --global user.username "alpineQ"
 
 sudo usermod -aG docker $USER
 
-echo Setting up vim stuff
+echo "VIM INSTALLATION"
 cp .vimrc ~
-git clone https://github.com/VundleVim/Vundle.vim.git ~/.vim/bundle/Vundle.vim
+git clone https://github.com/VundleVim/Vundle.vim.git ~/.vim/bundle/Vundle.vim -q
 sudo npm install -g livedown
 echo "Make :PluginInstall" > vim.tmp
 (
@@ -24,19 +24,23 @@ python3 install.py
 vim vim.tmp
 rm vim.tmp
 
-echo Setting up tmux stuff
-git clone https://github.com/gpakosz/.tmux.git
+echo "TMUX INSTALLATION"
+git clone https://github.com/gpakosz/.tmux.git -q
 ln -s -f .tmux/.tmux.conf
 cp .tmux/.tmux.conf.local ~
 
+echo "PRETTY WINDOW APPS INSTALLATION"
 sudo snap install pycharm-community --classic
 sudo snap install code --classic
+sudo snap install wps-office-all-lang-no-internet
+sudo snap install spotify
+sudo snap install telegram-desktop
+
+
+echo "VS CODE EXTENSIONS INSTALLATION"
 code --install-extension octref.vetur
 code --install-extension dbaeumer.vscode-eslint
 code --install-extension vscodevim.vim
 code --install-extension ms-python.python
 code --install-extension golang.go
 code --install-extension ms-azuretools.vscode-docker
-sudo snap install telegram-desktop
-sudo snap install wps-office-all-lang-no-internet
-sudo snap install spotify
