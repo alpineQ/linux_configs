@@ -1,7 +1,7 @@
 cp .bashrc ~
 sudo apt update
 sudo apt upgrade -y
-sudo apt install -y build-essential cmake vim python3-dev python3-pip git tmux docker docker-compose nodejs npm xclip golang ktorrent net-tools gnome-tweak-tool
+sudo apt install -y build-essential cmake vim python3-dev python3-pip python-is-python3 git tmux docker docker-compose nodejs npm xclip golang ktorrent net-tools gnome-tweak-tool
 sudo update-alternatives --install /usr/bin/pip pip /usr/bin/pip3 1
 
 if [ ! -d "$HOME/.ssh" ]; then
