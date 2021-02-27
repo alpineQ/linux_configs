@@ -36,6 +36,7 @@ sudo snap install code --classic
 sudo snap install wps-office-all-lang-no-internet
 sudo snap install spotify
 sudo snap install telegram-desktop
+sudo snap install vlc
 
 
 echo "VS CODE EXTENSIONS INSTALLATION"
