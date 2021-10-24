@@ -2,11 +2,11 @@
 GIT_EMAIL=""
 GIT_USERNAME=""
 
-if which apt ; then
+if which apt 2&> /dev/null ; then
     SEARCH_PKG="apt-cache search"
     INSTALL_CMD="sudo apt-get install -y"
     INSTALL_UPGRADE="sudo apt-get update && sudo apt-get upgrade -y"
-elif which pacman ; then
+elif which pacman 2&> /dev/null ; then
     SEARCH_PKG="pacman -Ss"
     INSTALL_CMD="sudo pacman -Sy"
     INSTALL_UPGRADE="sudo pacman -Suy"
@@ -19,7 +19,7 @@ install_packages() {
     $INSTALL_UPGRADE
     for package in $@
     do
-        if which "$package" ; then
+        if which "$package" 2&> /dev/null ; then
             echo "INSTALL LOG: $package already installed"
         elif [ -z "`$SEARCH_PKG ^$package\$`" ]; then
             echo "INSTALL LOG: $package was not found in package manager"
@@ -35,7 +35,7 @@ base_tools() {
 }
 
 zsh() {
-    if which zsh ; then
+    if which zsh 2&> /dev/null ; then
         return
     fi
     echo "INSTALL LOG: INSTALLING ZSH"
@@ -52,7 +52,7 @@ gethash() {
 }
 
 npm() {
-    if which npm ; then
+    if which npm 2&> /dev/null ; then
         return
     fi
     echo "INSTALL LOG: INSTALLING NPM"
@@ -63,14 +63,14 @@ npm() {
 }
 
 golang() {
-    if which go ; then
+    if which go 2&> /dev/null ; then
         return
     fi
     echo "INSTALL LOG: INSTALLING GOLANG"
     wget -q https://golang.org/dl/go1.17.1.linux-amd64.tar.gz
     sudo tar -C /usr/local -xzf go1.17.1.linux-amd64.tar.gz
     rm -rf go1.17.1.linux-amd64.tar.gz
-    if which zsh ; then
+    if which zsh 2&> /dev/null ; then
         echo "export PATH=$PATH:/usr/local/go/bin" >> ~/.zprofile
     fi
     echo "export PATH=$PATH:/usr/local/go/bin" >> ~/.profile
@@ -80,7 +80,7 @@ golang() {
 }
 
 python() {
-    if which python3.10 ; then
+    if which python3.10 2&> /dev/null ; then
         return
     fi
     
@@ -89,7 +89,7 @@ python() {
     install_packages python3.10
     python3 -m pip install --upgrade pip
     local PYTHON_BINARY_PATH=`which python3.10`
-    if which zsh ; then
+    if which zsh 2&> /dev/null ; then
         echo "alias python=\"\"" >> ~/.zshrc
         echo "alias pip=\"$PYTHON_BINARY_PATH -m pip\"" >> ~/.zshrc
         echo "export PATH=$PATH:$HOME/.local/bin" >> ~/.zprofile
@@ -111,7 +111,7 @@ python_from_source() {
     wget -q "https://www.python.org/ftp/python/3.10.0/Python-3.10.0.tgz"
     tar zxf Python-3.10.0.tgz && rm -rf Python-3.10.0.tgz && cd Python-3.10.0
     
-    if which "nproc" ; then
+    if which nproc 2&> /dev/null ; then
         local NPROC=`nproc`
     else
         NPROC=4
@@ -129,7 +129,7 @@ python_from_source() {
 
 vim() {
     echo "INSTALL LOG: INSTALLING VIM"
-    if ! which vim ; then
+    if ! which vim 2&> /dev/null ; then
         install_packages vim
     fi
     
@@ -146,23 +146,23 @@ vim() {
 }
 
 tmux() {
-    if which tmux ; then
+    if which tmux 2&> /dev/null; then
         return
     fi
     echo "INSTALL LOG: INSTALLING TMUX"
     install_packages tmux
     
-    chsh $USER -s `which tmux`
+    sudo chsh $USER -s `which tmux`
     git clone https://github.com/gpakosz/.tmux.git ~/.tmux -q
     ln -s -f ~/.tmux/.tmux.conf ~
     cp ~/.tmux/.tmux.conf.local ~
-    if which zsh ; then
+    if which zsh 2&> /dev/null ; then
         sed -i "12iset -g default-shell `which zsh`" ~/.tmux.conf
     fi
 }
 
 tldr() {
-    if which tldr ; then
+    if which tldr 2&> /dev/null ; then
         return
     fi
     echo "INSTALL LOG: INSTALLING TLDR"
@@ -171,7 +171,7 @@ tldr() {
 }
 
 docker() {
-    if which docker ; then
+    if which docker 2&> /dev/null ; then
         return
     fi
     echo "INSTALL LOG: INSTALLING DOCKER"
@@ -185,7 +185,7 @@ docker() {
 }
 
 docker_compose() {
-    if which docker-compose ; then
+    if which docker-compose 2&> /dev/null ; then
         return
     fi
     echo "INSTALL LOG: INSTALLING DOCKER COMPOSE"
@@ -197,7 +197,7 @@ docker_compose() {
 }
 
 ngrok() {
-    if which ngrok ; then
+    if which ngrok 2&> /dev/null ; then
         return
     fi
     echo "INSTALL LOG: INSTALLING NGROK"
@@ -240,7 +240,7 @@ git_login() {
 }
 
 pycharm() {
-    if which pycharm.sh ; then
+    if which pycharm.sh 2&> /dev/null ; then
         return
     fi
     echo "INSTALL LOG: INSTALLING PYCHARM"
@@ -248,7 +248,7 @@ pycharm() {
     wget -q "https://download.jetbrains.com/python/pycharm-community-2021.2.2.tar.gz.sha256"
     if [ "`cat pycharm-community-2021.2.2.tar.gz.sha256 | awk '{print $1}'`" == "`sha256sum pycharm-community-2021.2.2.tar.gz | awk '{print $1}'`" ]; then
     	sudo tar xzf pycharm-*.tar.gz -C /opt/
-        if which zsh ; then
+        if which zsh 2&> /dev/null ; then
     	    echo "export PATH=$PATH:/opt/pycharm-community-2021.2.2/bin/" >> ~/.zprofile
         else
     	    echo "export PATH=$PATH:/opt/pycharm-community-2021.2.2/bin/" >> ~/.profile
@@ -261,9 +261,10 @@ pycharm() {
 
 vscode() {
     echo "INSTALL LOG: INSTALLING VS CODE"
-    wget -qO - https://gitlab.com/paulcarroty/vscodium-deb-rpm-repo/raw/master/pub.gpg | sudo apt-key add -
-    echo 'deb https://paulcarroty.gitlab.io/vscodium-deb-rpm-repo/debs vscodium main' | sudo tee /etc/apt/sources.list.d/vscodium.list
-    install_packages codium
+    if [ ! -f "$HOME/.ssh/id_rsa" ]; then
+        sudo ln -s /var/lib/snapd/snap /snap
+    fi
+    snap install codium --classic
     
     codium --install-extension octref.vetur
     codium --install-extension dbaeumer.vscode-eslint
