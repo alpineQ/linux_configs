@@ -1,6 +1,8 @@
 #!/bin/bash
 GIT_EMAIL=""
 GIT_USERNAME=""
+#INSTALL_CMD="sudo apt-get install -y"
+INSTALL_CMD="sudo pacman -Sy"
 
 check_installed() {
     if [ "`which $1`" != "" ]; then
@@ -22,7 +24,7 @@ install_packages() {
         elif [ -z "`apt-cache search ^$package\$`" ]; then
             echo "INSTALL LOG: $package was not found in apt"
         else
-            sudo apt-get install -y $package
+            $INSTALL_CMD $package
         fi
     done
 }
@@ -37,7 +39,7 @@ zsh() {
         return
     fi
     echo "INSTALL LOG: INSTALLING ZSH"
-    sudo apt-get -y install zsh
+    install_packages zsh
     sh -c "`wget -qO - https://raw.github.com/ohmyzsh/ohmyzsh/master/tools/install.sh`" -s --batch || {
       echo "INSTALL LOG: Could not install Oh My Zsh" >/dev/stderr
       exit 1
@@ -54,7 +56,7 @@ npm() {
         return
     fi
     echo "INSTALL LOG: INSTALLING NPM"
-    sudo apt-get install -y npm
+    install_packages -y npm
     sudo npm install -g n
     sudo n stable
     sudo npm install -g npm@latest
@@ -84,7 +86,7 @@ python() {
     
     echo "INSTALL LOG: INSTALLING LATEST PYTHON"
     sudo add-apt-repository ppa:deadsnakes/ppa -y
-    sudo apt-get install -y python3.10
+    install_packages python3.10
     python3 -m pip install --upgrade pip
     local PYTHON_BINARY_PATH=`which python3.10`
     if check_installed zsh ; then
@@ -128,7 +130,7 @@ python_from_source() {
 vim() {
     echo "INSTALL LOG: INSTALLING VIM"
     if ! check_installed vim ; then
-        sudo apt-get install -y vim
+        install_packages vim
     fi
     
     if [[ -d ~/.vim/bundle/Vundle.vim ]]; then
@@ -148,7 +150,7 @@ tmux() {
         return
     fi
     echo "INSTALL LOG: INSTALLING TMUX"
-    sudo apt-get install -y tmux
+    install_packages tmux
     
     chsh $USER -s `which tmux`
     git clone https://github.com/gpakosz/.tmux.git ~/.tmux -q
@@ -175,7 +177,7 @@ docker() {
     echo "INSTALL LOG: INSTALLING DOCKER"
     wget -qO - https://download.docker.com/linux/ubuntu/gpg | sudo apt-key add -
     sudo add-apt-repository "deb [arch=amd64] https://download.docker.com/linux/ubuntu  `lsb_release -cs`  stable"
-    sudo apt-get install -y docker-ce
+    install_packages docker-ce
     
     sudo usermod -aG docker $USER
     sudo systemctl enable docker.service
@@ -261,9 +263,7 @@ vscode() {
     echo "INSTALL LOG: INSTALLING VS CODE"
     wget -qO - https://gitlab.com/paulcarroty/vscodium-deb-rpm-repo/raw/master/pub.gpg | sudo apt-key add -
     echo 'deb https://paulcarroty.gitlab.io/vscodium-deb-rpm-repo/debs vscodium main' | sudo tee /etc/apt/sources.list.d/vscodium.list
-    sudo apt-get update
-    sudo apt-get upgrade -y
-    sudo apt-get install -y codium
+    install_packages codium
     
     codium --install-extension octref.vetur
     codium --install-extension dbaeumer.vscode-eslint
@@ -283,7 +283,7 @@ desktop_tools() {
 
 repo_origin() {
     git remote remove origin
-    git remote add origin git@github.com:alpineQ/linux_configs.git
+    git remote add origin git@github.com:$GIT_USERNAME/linux_configs.git
 }
 
 all() {
