@@ -4,13 +4,6 @@ GIT_USERNAME=""
 #INSTALL_CMD="sudo apt-get install -y"
 INSTALL_CMD="sudo pacman -Sy"
 
-check_installed() {
-    if [ "`which $1`" != "" ]; then
-        return 0
-    fi
-    return 1
-}
-
 install_packages() {
     local LAST_UPDATE=$(( `date +%s` - `stat -c %Y /var/cache/apt/` ))
     if (( $LAST_UPDATE > 86400 )); then # If last update was more than 24 hours ago
@@ -19,7 +12,7 @@ install_packages() {
     fi
     for package in $@
     do
-        if check_installed "$package" ; then
+        if which "$package" ; then
             echo "INSTALL LOG: $package already installed"
         elif [ -z "`apt-cache search ^$package\$`" ]; then
             echo "INSTALL LOG: $package was not found in apt"
@@ -35,7 +28,7 @@ base_tools() {
 }
 
 zsh() {
-	if check_installed zsh ; then
+	if which zsh ; then
         return
     fi
     echo "INSTALL LOG: INSTALLING ZSH"
@@ -52,7 +45,7 @@ gethash() {
 }
 
 npm() {
-    if check_installed npm ; then
+    if which npm ; then
         return
     fi
     echo "INSTALL LOG: INSTALLING NPM"
@@ -63,14 +56,14 @@ npm() {
 }
 
 golang() {
-    if check_installed go ; then
+    if which go ; then
         return
     fi
     echo "INSTALL LOG: INSTALLING GOLANG"
     wget -q https://golang.org/dl/go1.17.1.linux-amd64.tar.gz
     sudo tar -C /usr/local -xzf go1.17.1.linux-amd64.tar.gz
     rm -rf go1.17.1.linux-amd64.tar.gz
-    if check_installed zsh ; then
+    if which zsh ; then
         echo "export PATH=$PATH:/usr/local/go/bin" >> ~/.zprofile
     fi
     echo "export PATH=$PATH:/usr/local/go/bin" >> ~/.profile
@@ -80,7 +73,7 @@ golang() {
 }
 
 python() {
-    if check_installed python3.10 ; then
+    if which python3.10 ; then
         return
     fi
     
@@ -89,7 +82,7 @@ python() {
     install_packages python3.10
     python3 -m pip install --upgrade pip
     local PYTHON_BINARY_PATH=`which python3.10`
-    if check_installed zsh ; then
+    if which zsh ; then
         echo "alias python=\"\"" >> ~/.zshrc
         echo "alias pip=\"$PYTHON_BINARY_PATH -m pip\"" >> ~/.zshrc
         echo "export PATH=$PATH:$HOME/.local/bin" >> ~/.zprofile
@@ -111,7 +104,7 @@ python_from_source() {
     wget -q "https://www.python.org/ftp/python/3.10.0/Python-3.10.0.tgz"
     tar zxf Python-3.10.0.tgz && rm -rf Python-3.10.0.tgz && cd Python-3.10.0
     
-    if check_installed "nproc" ; then
+    if which "nproc" ; then
         local NPROC=`nproc`
     else
         NPROC=4
@@ -129,7 +122,7 @@ python_from_source() {
 
 vim() {
     echo "INSTALL LOG: INSTALLING VIM"
-    if ! check_installed vim ; then
+    if ! which vim ; then
         install_packages vim
     fi
     
@@ -146,7 +139,7 @@ vim() {
 }
 
 tmux() {
-    if check_installed tmux ; then
+    if which tmux ; then
         return
     fi
     echo "INSTALL LOG: INSTALLING TMUX"
@@ -156,13 +149,13 @@ tmux() {
     git clone https://github.com/gpakosz/.tmux.git ~/.tmux -q
     ln -s -f ~/.tmux/.tmux.conf ~
     cp ~/.tmux/.tmux.conf.local ~
-    if check_installed zsh ; then
+    if which zsh ; then
         sed -i "12iset -g default-shell `which zsh`" ~/.tmux.conf
     fi
 }
 
 tldr() {
-    if check_installed tldr ; then
+    if which tldr ; then
         return
     fi
     echo "INSTALL LOG: INSTALLING TLDR"
@@ -171,7 +164,7 @@ tldr() {
 }
 
 docker() {
-    if check_installed docker ; then
+    if which docker ; then
         return
     fi
     echo "INSTALL LOG: INSTALLING DOCKER"
@@ -185,7 +178,7 @@ docker() {
 }
 
 docker_compose() {
-    if check_installed docker-compose ; then
+    if which docker-compose ; then
         return
     fi
     echo "INSTALL LOG: INSTALLING DOCKER COMPOSE"
@@ -197,7 +190,7 @@ docker_compose() {
 }
 
 ngrok() {
-    if check_installed ngrok ; then
+    if which ngrok ; then
         return
     fi
     echo "INSTALL LOG: INSTALLING NGROK"
@@ -240,7 +233,7 @@ git_login() {
 }
 
 pycharm() {
-    if check_installed pycharm.sh ; then
+    if which pycharm.sh ; then
         return
     fi
     echo "INSTALL LOG: INSTALLING PYCHARM"
@@ -248,7 +241,7 @@ pycharm() {
     wget -q "https://download.jetbrains.com/python/pycharm-community-2021.2.2.tar.gz.sha256"
     if [ "`cat pycharm-community-2021.2.2.tar.gz.sha256 | awk '{print $1}'`" == "`sha256sum pycharm-community-2021.2.2.tar.gz | awk '{print $1}'`" ]; then
     	sudo tar xzf pycharm-*.tar.gz -C /opt/
-        if check_installed zsh ; then
+        if which zsh ; then
     	    echo "export PATH=$PATH:/opt/pycharm-community-2021.2.2/bin/" >> ~/.zprofile
         else
     	    echo "export PATH=$PATH:/opt/pycharm-community-2021.2.2/bin/" >> ~/.profile
