@@ -1,21 +1,28 @@
 #!/bin/bash
 GIT_EMAIL=""
 GIT_USERNAME=""
-#INSTALL_CMD="sudo apt-get install -y"
-INSTALL_CMD="sudo pacman -Sy"
+
+if which apt ; then
+    SEARCH_PKG="apt-cache search"
+    INSTALL_CMD="sudo apt-get install -y"
+    INSTALL_UPGRADE="sudo apt-get update && sudo apt-get upgrade -y"
+elif which pacman ; then
+    SEARCH_PKG="pacman -Ss"
+    INSTALL_CMD="sudo pacman -Sy"
+    INSTALL_UPGRADE="sudo pacman -Suy"
+else
+    echo "Not found supported package manager (apt/pacman)"
+    return
+fi
 
 install_packages() {
-    local LAST_UPDATE=$(( `date +%s` - `stat -c %Y /var/cache/apt/` ))
-    if (( $LAST_UPDATE > 86400 )); then # If last update was more than 24 hours ago
-        sudo apt-get update
-        sudo apt-get upgrade -y
-    fi
+    $INSTALL_UPGRADE
     for package in $@
     do
         if which "$package" ; then
             echo "INSTALL LOG: $package already installed"
-        elif [ -z "`apt-cache search ^$package\$`" ]; then
-            echo "INSTALL LOG: $package was not found in apt"
+        elif [ -z "`$SEARCH_PKG ^$package\$`" ]; then
+            echo "INSTALL LOG: $package was not found in package manager"
         else
             $INSTALL_CMD $package
         fi
@@ -28,7 +35,7 @@ base_tools() {
 }
 
 zsh() {
-	if which zsh ; then
+    if which zsh ; then
         return
     fi
     echo "INSTALL LOG: INSTALLING ZSH"
@@ -37,10 +44,10 @@ zsh() {
       echo "INSTALL LOG: Could not install Oh My Zsh" >/dev/stderr
       exit 1
     }
-	echo "
+    echo "
 gethash() {
-	echo \$1 | md5sum | head -c 32 | xclip -sel clip
-	exit
+    echo \$1 | md5sum | head -c 32 | xclip -sel clip
+    exit
 }" >> ~/.zshrc
 }
 
@@ -280,8 +287,7 @@ repo_origin() {
 }
 
 all() {
-    sudo apt-get update
-    sudo apt-get upgrade -y
+    $INSTALL_UPGRADE
     
     base_tools
     npm
