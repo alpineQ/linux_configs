@@ -2,24 +2,32 @@
 GIT_EMAIL=""
 GIT_USERNAME=""
 
-if which apt 2&> /dev/null ; then
+check_installed() {
+    if which $1 &> /dev/null; then
+        return 0
+    else
+        return 1
+    fi
+}
+
+if check_installed apt; then
     SEARCH_PKG="apt-cache search"
     INSTALL_CMD="sudo apt-get install -y"
     INSTALL_UPGRADE="sudo apt-get update && sudo apt-get upgrade -y"
-elif which pacman 2&> /dev/null ; then
+elif check_installed pacman; then
     SEARCH_PKG="pacman -Ss"
-    INSTALL_CMD="sudo pacman -Sy"
-    INSTALL_UPGRADE="sudo pacman -Suy"
+    INSTALL_CMD="sudo pacman -S --noconfirm"
+    INSTALL_UPGRADE="sudo pacman -Su --noconfirm"
 else
     echo "Not found supported package manager (apt/pacman)"
-    return
+    exit 1
 fi
 
 install_packages() {
     $INSTALL_UPGRADE
     for package in $@
     do
-        if which "$package" 2&> /dev/null ; then
+        if check_installed "$package"; then
             echo "INSTALL LOG: $package already installed"
         elif [ -z "`$SEARCH_PKG ^$package\$`" ]; then
             echo "INSTALL LOG: $package was not found in package manager"
@@ -29,13 +37,13 @@ install_packages() {
     done
 }
 
-base_tools() {
+install_base_tools() {
     echo "INSTALL LOG: INSTALLING BASE TOOLS"
     install_packages build-essential cmake curl jq git net-tools xclip python3 python3-pip
 }
 
-zsh() {
-    if which zsh 2&> /dev/null ; then
+install_zsh() {
+    if check_installed zsh; then
         return
     fi
     echo "INSTALL LOG: INSTALLING ZSH"
@@ -51,8 +59,8 @@ gethash() {
 }" >> ~/.zshrc
 }
 
-npm() {
-    if which npm 2&> /dev/null ; then
+install_npm() {
+    if check_installed npm; then
         return
     fi
     echo "INSTALL LOG: INSTALLING NPM"
@@ -62,15 +70,15 @@ npm() {
     sudo npm install -g npm@latest
 }
 
-golang() {
-    if which go 2&> /dev/null ; then
+install_golang() {
+    if check_installed go; then
         return
     fi
     echo "INSTALL LOG: INSTALLING GOLANG"
     wget -q https://golang.org/dl/go1.17.1.linux-amd64.tar.gz
     sudo tar -C /usr/local -xzf go1.17.1.linux-amd64.tar.gz
     rm -rf go1.17.1.linux-amd64.tar.gz
-    if which zsh 2&> /dev/null ; then
+    if check_installed zsh; then
         echo "export PATH=$PATH:/usr/local/go/bin" >> ~/.zprofile
     fi
     echo "export PATH=$PATH:/usr/local/go/bin" >> ~/.profile
@@ -79,8 +87,8 @@ golang() {
     /usr/local/go/bin/go install -v github.com/ramya-rao-a/go-outline@latest
 }
 
-python() {
-    if which python3.10 2&> /dev/null ; then
+install_python() {
+    if check_installed python3.10; then
         return
     fi
     
@@ -89,7 +97,7 @@ python() {
     install_packages python3.10
     python3 -m pip install --upgrade pip
     local PYTHON_BINARY_PATH=`which python3.10`
-    if which zsh 2&> /dev/null ; then
+    if check_installed zsh; then
         echo "alias python=\"\"" >> ~/.zshrc
         echo "alias pip=\"$PYTHON_BINARY_PATH -m pip\"" >> ~/.zshrc
         echo "export PATH=$PATH:$HOME/.local/bin" >> ~/.zprofile
@@ -101,7 +109,7 @@ python() {
     python3 -m pip install pylint --user
 }
 
-python_from_source() {
+install_python_from_source() {
     echo "INSTALL LOG: INSTALLING LATEST PYTHON FROM SOURCE"
     install_packages build-essential gdb lcov libbz2-dev libffi-dev \
       libgdbm-dev liblzma-dev libncurses5-dev libreadline6-dev \
@@ -111,7 +119,7 @@ python_from_source() {
     wget -q "https://www.python.org/ftp/python/3.10.0/Python-3.10.0.tgz"
     tar zxf Python-3.10.0.tgz && rm -rf Python-3.10.0.tgz && cd Python-3.10.0
     
-    if which nproc 2&> /dev/null ; then
+    if check_installed nproc; then
         local NPROC=`nproc`
     else
         NPROC=4
@@ -127,9 +135,9 @@ python_from_source() {
     python3 -m pip install pylint --user
 }
 
-vim() {
+install_vim() {
     echo "INSTALL LOG: INSTALLING VIM"
-    if ! which vim 2&> /dev/null ; then
+    if ! check_installed vim; then
         install_packages vim
     fi
     
@@ -145,8 +153,8 @@ vim() {
     python3 ~/.vim/bundle/YouCompleteMe/install.py
 }
 
-tmux() {
-    if which tmux 2&> /dev/null; then
+install_tmux() {
+    if check_installed tmux; then
         return
     fi
     echo "INSTALL LOG: INSTALLING TMUX"
@@ -156,13 +164,13 @@ tmux() {
     git clone https://github.com/gpakosz/.tmux.git ~/.tmux -q
     ln -s -f ~/.tmux/.tmux.conf ~
     cp ~/.tmux/.tmux.conf.local ~
-    if which zsh 2&> /dev/null ; then
+    if check_installed zsh; then
         sed -i "12iset -g default-shell `which zsh`" ~/.tmux.conf
     fi
 }
 
-tldr() {
-    if which tldr 2&> /dev/null ; then
+install_tldr() {
+    if check_installed tldr; then
         return
     fi
     echo "INSTALL LOG: INSTALLING TLDR"
@@ -170,8 +178,8 @@ tldr() {
     tldr --update
 }
 
-docker() {
-    if which docker 2&> /dev/null ; then
+install_docker() {
+    if check_installed docker; then
         return
     fi
     echo "INSTALL LOG: INSTALLING DOCKER"
@@ -184,8 +192,8 @@ docker() {
     sudo systemctl enable containerd.service
 }
 
-docker_compose() {
-    if which docker-compose 2&> /dev/null ; then
+install_docker_compose() {
+    if check_installed docker-compose; then
         return
     fi
     echo "INSTALL LOG: INSTALLING DOCKER COMPOSE"
@@ -196,8 +204,8 @@ docker_compose() {
     sudo ln -s /usr/local/bin/docker-compose /usr/bin/docker-compose
 }
 
-ngrok() {
-    if which ngrok 2&> /dev/null ; then
+install_ngrok() {
+    if check_installed ngrok; then
         return
     fi
     echo "INSTALL LOG: INSTALLING NGROK"
@@ -207,7 +215,7 @@ ngrok() {
     sudo mv ngrok /usr/bin
 }
 
-ssh_keys() {
+install_ssh_keys() {
     if [ -f "$HOME/.ssh/id_rsa" ]; then
         echo "INSTALL LOG: ssh keys loaded"
         return
@@ -239,8 +247,8 @@ git_login() {
     git config --global user.name $GIT_USERNAME
 }
 
-pycharm() {
-    if which pycharm.sh 2&> /dev/null ; then
+install_pycharm() {
+    if check_installed pycharm.sh; then
         return
     fi
     echo "INSTALL LOG: INSTALLING PYCHARM"
@@ -248,7 +256,7 @@ pycharm() {
     wget -q "https://download.jetbrains.com/python/pycharm-community-2021.2.2.tar.gz.sha256"
     if [ "`cat pycharm-community-2021.2.2.tar.gz.sha256 | awk '{print $1}'`" == "`sha256sum pycharm-community-2021.2.2.tar.gz | awk '{print $1}'`" ]; then
     	sudo tar xzf pycharm-*.tar.gz -C /opt/
-        if which zsh 2&> /dev/null ; then
+        if check_installed zsh; then
     	    echo "export PATH=$PATH:/opt/pycharm-community-2021.2.2/bin/" >> ~/.zprofile
         else
     	    echo "export PATH=$PATH:/opt/pycharm-community-2021.2.2/bin/" >> ~/.profile
@@ -259,11 +267,8 @@ pycharm() {
     rm -rf pycharm-community-2021.2.2.tar.gz*
 }
 
-vscode() {
+install_vscode() {
     echo "INSTALL LOG: INSTALLING VS CODE"
-    if [ ! -f "$HOME/.ssh/id_rsa" ]; then
-        sudo ln -s /var/lib/snapd/snap /snap
-    fi
     snap install codium --classic
     
     codium --install-extension octref.vetur
@@ -274,7 +279,7 @@ vscode() {
     codium --install-extension ms-azuretools.vscode-docker
 }
 
-desktop_tools() {
+install_desktop_tools() {
     echo "INSTALL LOG: INSTALLING DESKTOP TOOLS"
     wget -qO - https://download.spotify.com/debian/pubkey_0D811D58.gpg | sudo apt-key add -
     echo "deb http://repository.spotify.com stable non-free" | sudo tee /etc/apt/sources.list.d/spotify.list
@@ -290,30 +295,31 @@ repo_origin() {
 all() {
     $INSTALL_UPGRADE
     
-    base_tools
-    npm
+    install_base_tools
+    install_npm
     git_login
     
-    python
-    vim
-    zsh
-    tmux
+    install_python
+    install_vim
+    install_zsh
+    install_tmux
     
-    docker
-    docker_compose
-    golang
-    tldr
-    ngrok
+    install_docker
+    install_docker_compose
+    install_golang
+    install_tldr
+    install_ngrok
     
-    pycharm
-    vscode
-    desktop_tools
+    install_pycharm
+    install_vscode
+    install_desktop_tools
 }
 
-if [ -z "`declare -f $1`" ]
-then
+if [[ ! -z "`declare -f install_$1`" ]]; then
+    "install_$1"
+elif [[ ! -z $1 &&  ! -z "`declare -f $1`" ]]; then
+    "$1"
+else
     echo "INSTALL LOG: $1 is not a known install script"
     exit 1
-else
-    "$1"
 fi
