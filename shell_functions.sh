@@ -1,5 +1,5 @@
 gethash() {
-        echo "$1" | md5sum | head -c 32 | xclip -sel clip
+        echo "$1" | md5sum | head -c 32 | xclip -selection clipboard
         exit
 }
 
