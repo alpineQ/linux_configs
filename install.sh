@@ -53,11 +53,7 @@ install_zsh() {
       echo "INSTALL LOG: Could not install Oh My Zsh" >/dev/stderr
       exit 1
     }
-    echo "
-gethash() {
-    echo \$1 | md5sum | head -c 32 | xclip -sel clip
-    exit
-}" >> ~/.zshrc
+    cat shell_functions.sh >> ~/.zshrc
 }
 
 install_npm() {
@@ -150,7 +146,7 @@ install_vim() {
         return
     fi
     echo "INSTALL LOG: INSTALLING VIM PLUGINS"
-    cp .vimrc ~
+    cp vim.config ~/.vimrc
     git clone https://github.com/VundleVim/Vundle.vim.git ~/.vim/bundle/Vundle.vim -q
     sudo npm install -g livedown
     vim --clean '+source ~/.vimrc' +PluginInstall +qall
