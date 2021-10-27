@@ -44,6 +44,7 @@ install_base_tools() {
 
 install_zsh() {
     if check_installed zsh; then
+        echo "INSTALL LOG: zsh already installed"
         return
     fi
     echo "INSTALL LOG: INSTALLING ZSH"
@@ -61,6 +62,7 @@ gethash() {
 
 install_npm() {
     if check_installed npm; then
+        echo "INSTALL LOG: npm already installed"
         return
     fi
     echo "INSTALL LOG: INSTALLING NPM"
@@ -72,6 +74,7 @@ install_npm() {
 
 install_golang() {
     if check_installed go; then
+        echo "INSTALL LOG: go already installed"
         return
     fi
     echo "INSTALL LOG: INSTALLING GOLANG"
@@ -89,6 +92,7 @@ install_golang() {
 
 install_python() {
     if check_installed python3.10; then
+        echo "INSTALL LOG: python3.10 already installed"
         return
     fi
     
@@ -155,6 +159,7 @@ install_vim() {
 
 install_tmux() {
     if check_installed tmux; then
+        echo "INSTALL LOG: tmux already installed"
         return
     fi
     echo "INSTALL LOG: INSTALLING TMUX"
@@ -171,6 +176,7 @@ install_tmux() {
 
 install_tldr() {
     if check_installed tldr; then
+        echo "INSTALL LOG: tldr already installed"
         return
     fi
     echo "INSTALL LOG: INSTALLING TLDR"
@@ -180,12 +186,17 @@ install_tldr() {
 
 install_docker() {
     if check_installed docker; then
+        echo "INSTALL LOG: docker already installed"
         return
     fi
     echo "INSTALL LOG: INSTALLING DOCKER"
-    wget -qO - https://download.docker.com/linux/ubuntu/gpg | sudo apt-key add -
-    sudo add-apt-repository "deb [arch=amd64] https://download.docker.com/linux/ubuntu  `lsb_release -cs`  stable"
-    install_packages docker-ce
+    if check_installed apt; then
+        wget -qO - https://download.docker.com/linux/ubuntu/gpg | sudo apt-key add -
+        sudo add-apt-repository "deb [arch=amd64] https://download.docker.com/linux/ubuntu  `lsb_release -cs`  stable"
+        install_packages docker-ce
+    elif check_installed pacman; then
+        install_packages docker
+    fi
     
     sudo usermod -aG docker $USER
     sudo systemctl enable docker.service
@@ -194,6 +205,7 @@ install_docker() {
 
 install_docker_compose() {
     if check_installed docker-compose; then
+        echo "INSTALL LOG: docker-compose already installed"
         return
     fi
     echo "INSTALL LOG: INSTALLING DOCKER COMPOSE"
@@ -206,6 +218,7 @@ install_docker_compose() {
 
 install_ngrok() {
     if check_installed ngrok; then
+        echo "INSTALL LOG: ngrok already installed"
         return
     fi
     echo "INSTALL LOG: INSTALLING NGROK"
@@ -249,6 +262,7 @@ git_login() {
 
 install_pycharm() {
     if check_installed pycharm.sh; then
+        echo "INSTALL LOG: pycharm already installed"
         return
     fi
     echo "INSTALL LOG: INSTALLING PYCHARM"
@@ -268,6 +282,10 @@ install_pycharm() {
 }
 
 install_vscode() {
+    if check_installed codium; then
+        echo "INSTALL LOG: VS Code already installed"
+        return
+    fi
     echo "INSTALL LOG: INSTALLING VS CODE"
     snap install codium --classic
     
