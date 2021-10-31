@@ -3,7 +3,7 @@ GIT_EMAIL=""
 GIT_USERNAME=""
 
 check_installed() {
-    if which $1 &> /dev/null; then
+    if which "$1" &> /dev/null; then
         return 0
     else
         return 1
@@ -25,14 +25,14 @@ fi
 
 install_packages() {
     $INSTALL_UPGRADE
-    for package in $@
+    for package in "$@"
     do
         if check_installed "$package"; then
             echo "INSTALL LOG: $package already installed"
-        elif [ -z "`$SEARCH_PKG ^$package\$`" ]; then
+        elif [ -z "$($SEARCH_PKG ^$package\$)" ]; then
             echo "INSTALL LOG: $package was not found in package manager"
         else
-            $INSTALL_CMD $package
+            $INSTALL_CMD "$package"
         fi
     done
 }
@@ -49,7 +49,7 @@ install_zsh() {
     fi
     echo "INSTALL LOG: INSTALLING ZSH"
     install_packages zsh
-    sh -c "`wget -qO - https://raw.github.com/ohmyzsh/ohmyzsh/master/tools/install.sh`" -s --batch || {
+    sh -c "$(wget -qO - https://raw.github.com/ohmyzsh/ohmyzsh/master/tools/install.sh)" -s --batch || {
       echo "INSTALL LOG: Could not install Oh My Zsh" >/dev/stderr
       exit 1
     }
@@ -93,10 +93,11 @@ install_python() {
     fi
     
     echo "INSTALL LOG: INSTALLING LATEST PYTHON"
+    local PYTHON_BINARY_PATH
     sudo add-apt-repository ppa:deadsnakes/ppa -y
     install_packages python3.10
     python3 -m pip install --upgrade pip
-    local PYTHON_BINARY_PATH=`which python3.10`
+    PYTHON_BINARY_PATH=$(which python3.10)
     if check_installed zsh; then
         echo "alias python=\"\"" >> ~/.zshrc
         echo "alias pip=\"$PYTHON_BINARY_PATH -m pip\"" >> ~/.zshrc
@@ -110,6 +111,7 @@ install_python() {
 }
 
 install_python_from_source() {
+    local N_PROC
     echo "INSTALL LOG: INSTALLING LATEST PYTHON FROM SOURCE"
     install_packages build-essential gdb lcov libbz2-dev libffi-dev \
       libgdbm-dev liblzma-dev libncurses5-dev libreadline6-dev \
@@ -117,21 +119,22 @@ install_python_from_source() {
     sudo pip install --upgrade pip
     
     wget -q "https://www.python.org/ftp/python/3.10.0/Python-3.10.0.tgz"
-    tar zxf Python-3.10.0.tgz && rm -rf Python-3.10.0.tgz && cd Python-3.10.0
+    tar zxf Python-3.10.0.tgz && rm -rf Python-3.10.0.tgz
+    cd Python-3.10.0 || exit
     
     if check_installed nproc; then
-        local NPROC=`nproc`
+        N_PROC=$(nproc)
     else
-        NPROC=4
+        N_PROC=4
     fi
     
     ./configure --enable-optimizations
-    make -j $NPROC
-    sudo make -j $NPROC altinstall
+    make -j $N_PROC
+    sudo make -j $N_PROC altinstall
     cd .. && sudo rm -rf Python-3.10.0
     
     sudo ln -s /usr/share/pyshared/lsb_release.py /usr/local/lib/python3.10/site-packages/lsb_release.py
-    sudo ln -sf `which python3` $PYTHON_BINARY_PATH
+    sudo ln -sf "$(which python3)" "$PYTHON_BINARY_PATH"
     python3 -m pip install pylint --user
 }
 
@@ -161,12 +164,12 @@ install_tmux() {
     echo "INSTALL LOG: INSTALLING TMUX"
     install_packages tmux
     
-    sudo chsh $USER -s `which tmux`
+    sudo chsh "$USER" -s "$(which tmux)"
     git clone https://github.com/gpakosz/.tmux.git ~/.tmux -q
     ln -s -f ~/.tmux/.tmux.conf ~
     cp ~/.tmux/.tmux.conf.local ~
     if check_installed zsh; then
-        sed -i "12iset -g default-shell `which zsh`" ~/.tmux.conf
+        sed -i "12iset -g default-shell $(which zsh)" ~/.tmux.conf
     fi
 }
 
@@ -188,27 +191,28 @@ install_docker() {
     echo "INSTALL LOG: INSTALLING DOCKER"
     if check_installed apt; then
         wget -qO - https://download.docker.com/linux/ubuntu/gpg | sudo apt-key add -
-        sudo add-apt-repository "deb [arch=amd64] https://download.docker.com/linux/ubuntu  `lsb_release -cs`  stable"
+        sudo add-apt-repository "deb [arch=amd64] https://download.docker.com/linux/ubuntu  $(lsb_release -cs)  stable"
         install_packages docker-ce
     elif check_installed pacman; then
         install_packages docker
     fi
     
-    sudo usermod -aG docker $USER
+    sudo usermod -aG docker "$USER"
     sudo systemctl enable docker.service
     sudo systemctl enable containerd.service
 }
 
 install_docker_compose() {
+    local COMPOSE_VERSION
     if check_installed docker-compose; then
         echo "INSTALL LOG: docker-compose already installed"
         return
     fi
     echo "INSTALL LOG: INSTALLING DOCKER COMPOSE"
-    local COMPOSE_VERSION="docker-compose-`uname -s`-`uname -m`"
+    COMPOSE_VERSION="docker-compose-$(uname -s)-$(uname -m)"
     wget -q "https://github.com/docker/compose/releases/download/v2.0.1/$COMPOSE_VERSION"
-    chmod +x $COMPOSE_VERSION
-    sudo mv $COMPOSE_VERSION /usr/local/bin/docker-compose
+    chmod +x "$COMPOSE_VERSION"
+    sudo mv "$COMPOSE_VERSION" /usr/local/bin/docker-compose
     sudo ln -s /usr/local/bin/docker-compose /usr/bin/docker-compose
 }
 
@@ -229,20 +233,22 @@ install_ssh_keys() {
         echo "INSTALL LOG: ssh keys loaded"
         return
     fi
+    local BITWARDEN_LOGIN_OUTPUT
+    local SSH_KEY_INFO
     echo "INSTALL LOG: LOADING SSH KEYS"
-    read -p "Bitwarden ssh key name [empty for ssh-keygen]: " BITWARDEN_LOAD_KEYS
-    if [ ! -z "$BITWARDEN_LOAD_KEYS" ]; then
+    read -rp "Bitwarden ssh key name [empty for ssh-keygen]: " BITWARDEN_LOAD_KEYS
+    if [ -n "$BITWARDEN_LOAD_KEYS" ]; then
 	mkdir ~/.ssh
         if [ -z "$BITWARDEN_SERVER_URL" ]; then
-        	read -p "Bitwarden server: " BITWARDEN_SERVER_URL
+        	read -rp "Bitwarden server: " BITWARDEN_SERVER_URL
         fi
         sudo npm install -g @bitwarden/cli
         bw config server "$BITWARDEN_SERVER_URL"
-        local BITWARDEN_LOGIN_OUTPUT=`bw login "$BITWARDEN_EMAIL" "$BITWARDEN_PASSWORD"`
-        `echo "$BITWARDEN_LOGIN_OUTPUT" | grep BW_SESSION= -m 1 | sed "s/$ //" | sed "s/\"//g"`
-        local SSH_KEY_INFO=`bw get item $BITWARDEN_SSH_KEY_NAME`
-        echo $SSH_KEY_INFO | jq ".fields[] | select((.name == \"id_rsa.pub\")).value" -r > "$HOME/.ssh/id_rsa.pub"
-        echo $SSH_KEY_INFO | jq ".notes" -r > "$HOME/.ssh/id_rsa"
+        BITWARDEN_LOGIN_OUTPUT=$(bw login "$BITWARDEN_EMAIL" "$BITWARDEN_PASSWORD")
+        echo "$BITWARDEN_LOGIN_OUTPUT" | grep BW_SESSION= -m 1 | sed "s/$ //" | sed "s/\"//g"
+        SSH_KEY_INFO=$(bw get item "$BITWARDEN_SSH_KEY_NAME")
+        echo "$SSH_KEY_INFO" | jq ".fields[] | select((.name == \"id_rsa.pub\")).value" -r > "$HOME/.ssh/id_rsa.pub"
+        echo "$SSH_KEY_INFO" | jq ".notes" -r > "$HOME/.ssh/id_rsa"
         sudo npm uninstall -g @bitwarden/cli
         rm -rf ~/.config/Bitwarden\ CLI/
     else
@@ -252,8 +258,8 @@ install_ssh_keys() {
 
 git_login() {
     echo "INSTALL LOG: SETTING UP GIT USERNAME"
-    git config --global user.email $GIT_EMAIL
-    git config --global user.name $GIT_USERNAME
+    git config --global user.email "$GIT_EMAIL"
+    git config --global user.name "$GIT_USERNAME"
 }
 
 install_pycharm() {
@@ -264,7 +270,7 @@ install_pycharm() {
     echo "INSTALL LOG: INSTALLING PYCHARM"
     wget -q "https://download.jetbrains.com/python/pycharm-community-2021.2.2.tar.gz"
     wget -q "https://download.jetbrains.com/python/pycharm-community-2021.2.2.tar.gz.sha256"
-    if [ "`cat pycharm-community-2021.2.2.tar.gz.sha256 | awk '{print $1}'`" == "`sha256sum pycharm-community-2021.2.2.tar.gz | awk '{print $1}'`" ]; then
+    if [ "$(awk '{print $1}' < pycharm-community-2021.2.2.tar.gz.sha256)" == "$(sha256sum pycharm-community-2021.2.2.tar.gz | awk '{print $1}')" ]; then
     	sudo tar xzf pycharm-*.tar.gz -C /opt/
         if check_installed zsh; then
     	    echo "export PATH=$PATH:/opt/pycharm-community-2021.2.2/bin/" >> ~/.zprofile
@@ -303,7 +309,7 @@ install_desktop_tools() {
 
 repo_origin() {
     git remote remove origin
-    git remote add origin git@github.com:$GIT_USERNAME/linux_configs.git
+    git remote add origin git@github.com:"$GIT_USERNAME"/linux_configs.git
 }
 
 all() {
@@ -329,9 +335,9 @@ all() {
     install_desktop_tools
 }
 
-if [[ ! -z "`declare -f install_$1`" ]]; then
+if [[ -n "$(declare -f install_"$1")" ]]; then
     "install_$1"
-elif [[ ! -z $1 &&  ! -z "`declare -f $1`" ]]; then
+elif [[ -n $1 &&  -n "$(declare -f "$1")" ]]; then
     "$1"
 else
     echo "INSTALL LOG: $1 is not a known install script"

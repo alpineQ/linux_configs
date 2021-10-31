@@ -4,7 +4,7 @@ gethash() {
 }
 
 waitfor() {
-    while [ ! -z "$(pgrep $1)" ];
+    while [ -n "$(pgrep "$1")" ];
     do
         sleep 1
     done
