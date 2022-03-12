@@ -43,10 +43,6 @@ install_base_tools() {
 }
 
 install_zsh() {
-    if check_installed zsh; then
-        echo "INSTALL LOG: zsh already installed"
-        return
-    fi
     echo "INSTALL LOG: INSTALLING ZSH"
     install_packages zsh
     sh -c "$(wget -qO - https://raw.github.com/ohmyzsh/ohmyzsh/master/tools/install.sh)" -s --batch || {
@@ -57,22 +53,14 @@ install_zsh() {
 }
 
 install_npm() {
-    if check_installed npm; then
-        echo "INSTALL LOG: npm already installed"
-        return
-    fi
     echo "INSTALL LOG: INSTALLING NPM"
-    install_packages -y npm
+    install_packages npm
     sudo npm install -g n
     sudo n stable
     sudo npm install -g npm@latest
 }
 
 install_golang() {
-    if check_installed go; then
-        echo "INSTALL LOG: go already installed"
-        return
-    fi
     echo "INSTALL LOG: INSTALLING GOLANG"
     wget -q https://golang.org/dl/go1.17.1.linux-amd64.tar.gz
     sudo tar -C /usr/local -xzf go1.17.1.linux-amd64.tar.gz
@@ -140,9 +128,7 @@ install_python_from_source() {
 
 install_vim() {
     echo "INSTALL LOG: INSTALLING VIM"
-    if ! check_installed vim; then
-        install_packages vim
-    fi
+    install_packages vim
     
     if [[ -d ~/.vim/bundle/Vundle.vim ]]; then
         echo "Vim plugins already installed!"
@@ -157,10 +143,6 @@ install_vim() {
 }
 
 install_tmux() {
-    if check_installed tmux; then
-        echo "INSTALL LOG: tmux already installed"
-        return
-    fi
     echo "INSTALL LOG: INSTALLING TMUX"
     install_packages tmux
     
@@ -238,6 +220,8 @@ install_ssh_keys() {
     echo "INSTALL LOG: LOADING SSH KEYS"
     read -rp "Bitwarden ssh key name [empty for ssh-keygen]: " BITWARDEN_LOAD_KEYS
     if [ -n "$BITWARDEN_LOAD_KEYS" ]; then
+	install_npm
+	install_packages jq
 	mkdir ~/.ssh
         if [ -z "$BITWARDEN_SERVER_URL" ]; then
         	read -rp "Bitwarden server: " BITWARDEN_SERVER_URL
