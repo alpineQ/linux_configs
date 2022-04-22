@@ -199,7 +199,11 @@ install_ssh_keys() {
     local BITWARDEN_LOGIN_OUTPUT
     local SSH_KEY_INFO
     echo "INSTALL LOG: LOADING SSH KEYS"
-    read -rp "Load ssh keys from Bitwarden? [Y/n]: " ans
+    if [ -z "$BITWARDEN_PASSWORD" ]; then
+    	read -rp "Load ssh keys from Bitwarden? [Y/n]: " ans
+    else
+        ans="Y"
+    fi
     if [ "$ans" != "n" ]; then
 	install_npm
 	install_packages jq
