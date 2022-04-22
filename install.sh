@@ -2,6 +2,10 @@
 GIT_EMAIL="mk_dev@mail.ru"
 GIT_USERNAME="alpineQ"
 
+BITWARDEN_EMAIL=""
+BITWARDEN_PASSWORD=""
+BITWARDEN_SERVER_URL=""
+
 check_installed() {
     if which "$1" &> /dev/null; then
         return 0
@@ -24,7 +28,6 @@ else
 fi
 
 install_packages() {
-    $INSTALL_UPGRADE
     for package in "$@"
     do
         if check_installed "$package"; then
@@ -55,6 +58,9 @@ install_zsh() {
 install_npm() {
     echo "INSTALL LOG: INSTALLING NPM"
     install_packages npm
+    if check_installed node; then
+        return
+    fi
     sudo npm install -g n
     sudo n stable
     sudo npm install -g npm@latest
@@ -193,21 +199,25 @@ install_ssh_keys() {
     local BITWARDEN_LOGIN_OUTPUT
     local SSH_KEY_INFO
     echo "INSTALL LOG: LOADING SSH KEYS"
-    read -rp "Bitwarden ssh key name [empty for ssh-keygen]: " BITWARDEN_LOAD_KEYS
-    if [ -n "$BITWARDEN_LOAD_KEYS" ]; then
+    read -rp "Load ssh keys from Bitwarden? [Y/n]: " ans
+    if [ "$ans" != "n" ]; then
 	install_npm
 	install_packages jq
 	mkdir ~/.ssh
+        sudo npm install -g @bitwarden/cli
         if [ -z "$BITWARDEN_SERVER_URL" ]; then
         	read -rp "Bitwarden server: " BITWARDEN_SERVER_URL
         fi
-        sudo npm install -g @bitwarden/cli
         bw config server "$BITWARDEN_SERVER_URL"
         BITWARDEN_LOGIN_OUTPUT=$(bw login "$BITWARDEN_EMAIL" "$BITWARDEN_PASSWORD")
-        echo "$BITWARDEN_LOGIN_OUTPUT" | grep BW_SESSION= -m 1 | sed "s/$ //" | sed "s/\"//g"
-        SSH_KEY_INFO=$(bw get item "$BITWARDEN_SSH_KEY_NAME")
+        echo ${BITWARDEN_LOGIN_OUTPUT}
+        echo ${BITWARDEN_LOGIN_OUTPUT:130:88}
+        bw sync --session ${BITWARDEN_LOGIN_OUTPUT:130:88}
+        SSH_KEY_INFO=$(bw get item "SSH key" --session ${BITWARDEN_LOGIN_OUTPUT:130:88})
         echo "$SSH_KEY_INFO" | jq ".fields[] | select((.name == \"id_rsa.pub\")).value" -r > "$HOME/.ssh/id_rsa.pub"
+        chmod 644 "$HOME/.ssh/id_rsa.pub"
         echo "$SSH_KEY_INFO" | jq ".notes" -r > "$HOME/.ssh/id_rsa"
+        chmod 600 "$HOME/.ssh/id_rsa"
         sudo npm uninstall -g @bitwarden/cli
         rm -rf ~/.config/Bitwarden\ CLI/
     else
