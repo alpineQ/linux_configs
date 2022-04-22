@@ -1,6 +1,6 @@
 #!/bin/bash
-GIT_EMAIL=""
-GIT_USERNAME=""
+GIT_EMAIL="mk_dev@mail.ru"
+GIT_USERNAME="alpineQ"
 
 check_installed() {
     if which "$1" &> /dev/null; then
@@ -62,30 +62,12 @@ install_npm() {
 
 install_golang() {
     echo "INSTALL LOG: INSTALLING GOLANG"
-    wget -q https://golang.org/dl/go1.17.1.linux-amd64.tar.gz
-    sudo tar -C /usr/local -xzf go1.17.1.linux-amd64.tar.gz
-    rm -rf go1.17.1.linux-amd64.tar.gz
-    if check_installed zsh; then
-        echo "export PATH=$PATH:/usr/local/go/bin" >> ~/.zprofile
-    fi
-    echo "export PATH=$PATH:/usr/local/go/bin" >> ~/.profile
-    
-    /usr/local/go/bin/go install -v golang.org/x/tools/gopls@latest
-    /usr/local/go/bin/go install -v github.com/ramya-rao-a/go-outline@latest
+    install_packages golang
 }
 
 install_python() {
-    if check_installed python3.10; then
-        echo "INSTALL LOG: python3.10 already installed"
-        return
-    fi
-    
-    echo "INSTALL LOG: INSTALLING LATEST PYTHON"
-    local PYTHON_BINARY_PATH
-    sudo add-apt-repository ppa:deadsnakes/ppa -y
-    install_packages python3.10
-    python3 -m pip install --upgrade pip
-    PYTHON_BINARY_PATH=$(which python3.10)
+    install_packages python3
+    PYTHON_BINARY_PATH=$(which python3)
     if check_installed zsh; then
         echo "alias python=\"\"" >> ~/.zshrc
         echo "alias pip=\"$PYTHON_BINARY_PATH -m pip\"" >> ~/.zshrc
@@ -171,31 +153,24 @@ install_docker() {
         return
     fi
     echo "INSTALL LOG: INSTALLING DOCKER"
-    if check_installed apt; then
-        wget -qO - https://download.docker.com/linux/ubuntu/gpg | sudo apt-key add -
-        sudo add-apt-repository "deb [arch=amd64] https://download.docker.com/linux/ubuntu  $(lsb_release -cs)  stable"
-        install_packages docker-ce
-    elif check_installed pacman; then
-        install_packages docker
-    fi
+
+    sudo apt-get update && sudo apt-get install -y ca-certificates curl gnupg lsb-release
+    curl -fsSL https://download.docker.com/linux/ubuntu/gpg | sudo gpg --dearmor -o /usr/share/keyrings/docker-archive-keyring.gpg
+    echo "deb [arch=$(dpkg --print-architecture) signed-by=/usr/share/keyrings/docker-archive-keyring.gpg] https://download.docker.com/linux/ubuntu \
+        $(lsb_release -cs) stable" | sudo tee /etc/apt/sources.list.d/docker.list > /dev/null
     
+    sudo apt-get update && sudo apt-get install -y docker-ce docker-ce-cli containerd.io
     sudo usermod -aG docker "$USER"
     sudo systemctl enable docker.service
     sudo systemctl enable containerd.service
+    newgrp docker
 }
 
 install_docker_compose() {
-    local COMPOSE_VERSION
-    if check_installed docker-compose; then
-        echo "INSTALL LOG: docker-compose already installed"
-        return
-    fi
-    echo "INSTALL LOG: INSTALLING DOCKER COMPOSE"
-    COMPOSE_VERSION="docker-compose-$(uname -s)-$(uname -m)"
-    wget -q "https://github.com/docker/compose/releases/download/v2.0.1/$COMPOSE_VERSION"
-    chmod +x "$COMPOSE_VERSION"
-    sudo mv "$COMPOSE_VERSION" /usr/local/bin/docker-compose
-    sudo ln -s /usr/local/bin/docker-compose /usr/bin/docker-compose
+    DOCKER_CONFIG=${DOCKER_CONFIG:-$HOME/.docker}
+    mkdir -p $DOCKER_CONFIG/cli-plugins
+    curl -SL https://github.com/docker/compose/releases/download/v2.2.3/docker-compose-linux-x86_64 -o $DOCKER_CONFIG/cli-plugins/docker-compose
+    chmod +x $DOCKER_CONFIG/cli-plugins/docker-compose
 }
 
 install_ngrok() {
@@ -246,49 +221,9 @@ git_login() {
     git config --global user.name "$GIT_USERNAME"
 }
 
-install_pycharm() {
-    if check_installed pycharm.sh; then
-        echo "INSTALL LOG: pycharm already installed"
-        return
-    fi
-    echo "INSTALL LOG: INSTALLING PYCHARM"
-    wget -q "https://download.jetbrains.com/python/pycharm-community-2021.2.2.tar.gz"
-    wget -q "https://download.jetbrains.com/python/pycharm-community-2021.2.2.tar.gz.sha256"
-    if [ "$(awk '{print $1}' < pycharm-community-2021.2.2.tar.gz.sha256)" == "$(sha256sum pycharm-community-2021.2.2.tar.gz | awk '{print $1}')" ]; then
-    	sudo tar xzf pycharm-*.tar.gz -C /opt/
-        if check_installed zsh; then
-    	    echo "export PATH=$PATH:/opt/pycharm-community-2021.2.2/bin/" >> ~/.zprofile
-        else
-    	    echo "export PATH=$PATH:/opt/pycharm-community-2021.2.2/bin/" >> ~/.profile
-        fi
-    else
-    	echo "INSTALL LOG: Pycharm install error: sha256 mismatch"
-    fi
-    rm -rf pycharm-community-2021.2.2.tar.gz*
-}
-
-install_vscode() {
-    if check_installed codium; then
-        echo "INSTALL LOG: VS Code already installed"
-        return
-    fi
-    echo "INSTALL LOG: INSTALLING VS CODE"
-    snap install codium --classic
-    
-    codium --install-extension octref.vetur
-    codium --install-extension dbaeumer.vscode-eslint
-    codium --install-extension vscodevim.vim
-    codium --install-extension ms-python.python
-    codium --install-extension golang.go
-    codium --install-extension ms-azuretools.vscode-docker
-}
-
 install_desktop_tools() {
     echo "INSTALL LOG: INSTALLING DESKTOP TOOLS"
-    wget -qO - https://download.spotify.com/debian/pubkey_0D811D58.gpg | sudo apt-key add -
-    echo "deb http://repository.spotify.com stable non-free" | sudo tee /etc/apt/sources.list.d/spotify.list
-    
-    install_packages ktorrent gnome-tweak-tool gparted telegram-desktop spotify-client vlc
+    install_packages ktorrent gnome-tweak-tool gparted telegram-desktop vlc
 }
 
 repo_origin() {
@@ -296,16 +231,17 @@ repo_origin() {
     git remote add origin git@github.com:"$GIT_USERNAME"/linux_configs.git
 }
 
-all() {
+server() {
     $INSTALL_UPGRADE
     
     install_base_tools
     install_npm
     git_login
+    install_ssh_keys
     
+    install_zsh
     install_python
     install_vim
-    install_zsh
     install_tmux
     
     install_docker
@@ -313,13 +249,16 @@ all() {
     install_golang
     install_tldr
     install_ngrok
-    
-    install_pycharm
-    install_vscode
+}
+
+desktop() {
+    server
     install_desktop_tools
 }
 
-if [[ -n "$(declare -f install_"$1")" ]]; then
+if [[ 0 -eq $# ]]; then
+	server
+elif [[ -n "$(declare -f install_"$1")" ]]; then
     "install_$1"
 elif [[ -n $1 &&  -n "$(declare -f "$1")" ]]; then
     "$1"
