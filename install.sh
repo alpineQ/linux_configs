@@ -16,8 +16,8 @@ check_installed() {
 
 if check_installed apt; then
     SEARCH_PKG="apt-cache search"
-    INSTALL_CMD="sudo apt-get install -y"
-    INSTALL_UPGRADE="sudo apt-get update && sudo apt-get upgrade -y"
+    INSTALL_CMD="sudo apt-get -q install -y"
+    INSTALL_UPGRADE="sudo apt-get -q update && sudo apt-get -q upgrade -y"
 elif check_installed pacman; then
     SEARCH_PKG="pacman -Ss"
     INSTALL_CMD="sudo pacman -S --noconfirm"
@@ -73,7 +73,7 @@ install_golang() {
 
 install_python() {
     install_packages python3
-    PYTHON_BINARY_PATH=$(which python3)
+    local PYTHON_BINARY_PATH=$(which python3)
     if check_installed zsh; then
         echo "alias python=\"\"" >> ~/.zshrc
         echo "alias pip=\"$PYTHON_BINARY_PATH -m pip\"" >> ~/.zshrc
@@ -87,27 +87,27 @@ install_python() {
 }
 
 install_python_from_source() {
-    local N_PROC
+    local PYTHON_VERSION="3.10.0"
+    local N_PROC=1
+
     echo "INSTALL LOG: INSTALLING LATEST PYTHON FROM SOURCE"
     install_packages build-essential gdb lcov libbz2-dev libffi-dev \
       libgdbm-dev liblzma-dev libncurses5-dev libreadline6-dev \
       libsqlite3-dev libssl-dev lzma lzma-dev tk-dev uuid-dev zlib1g-dev
     sudo pip install --upgrade pip
     
-    wget -q "https://www.python.org/ftp/python/3.10.0/Python-3.10.0.tgz"
-    tar zxf Python-3.10.0.tgz && rm -rf Python-3.10.0.tgz
-    cd Python-3.10.0 || exit
+    wget -q "https://www.python.org/ftp/python/$PYTHON_VERSION/Python-$PYTHON_VERSION.tgz"
+    tar zxf Python-$PYTHON_VERSION.tgz && rm -rf Python-$PYTHON_VERSION.tgz
+    cd Python-$PYTHON_VERSION || exit
     
     if check_installed nproc; then
         N_PROC=$(nproc)
-    else
-        N_PROC=4
     fi
     
     ./configure --enable-optimizations
     make -j $N_PROC
     sudo make -j $N_PROC altinstall
-    cd .. && sudo rm -rf Python-3.10.0
+    cd .. && sudo rm -rf Python-$PYTHON_VERSION
     
     sudo ln -s /usr/share/pyshared/lsb_release.py /usr/local/lib/python3.10/site-packages/lsb_release.py
     sudo ln -sf "$(which python3)" "$PYTHON_BINARY_PATH"
@@ -159,12 +159,16 @@ install_docker() {
     fi
     echo "INSTALL LOG: INSTALLING DOCKER"
 
-    sudo apt-get update && sudo apt-get install -y ca-certificates curl gnupg lsb-release
-    curl -fsSL https://download.docker.com/linux/ubuntu/gpg | sudo gpg --dearmor -o /usr/share/keyrings/docker-archive-keyring.gpg
-    echo "deb [arch=$(dpkg --print-architecture) signed-by=/usr/share/keyrings/docker-archive-keyring.gpg] https://download.docker.com/linux/ubuntu \
-        $(lsb_release -cs) stable" | sudo tee /etc/apt/sources.list.d/docker.list > /dev/null
-    
-    sudo apt-get update && sudo apt-get install -y docker-ce docker-ce-cli containerd.io
+    if check_installed apt; then
+        INSTALL_UPGRADE && install_packages ca-certificates curl gnupg lsb-release
+        curl -fsSL https://download.docker.com/linux/ubuntu/gpg | sudo gpg --dearmor -o /usr/share/keyrings/docker-archive-keyring.gpg
+        echo "deb [arch=$(dpkg --print-architecture) signed-by=/usr/share/keyrings/docker-archive-keyring.gpg] https://download.docker.com/linux/ubuntu \
+            $(lsb_release -cs) stable" | sudo tee /etc/apt/sources.list.d/docker.list > /dev/null
+        
+        INSTALL_UPGRADE && install_packages docker-ce docker-ce-cli containerd.io
+    else
+        install_packages docker
+    fi
     sudo usermod -aG docker "$USER"
     sudo systemctl enable docker.service
     sudo systemctl enable containerd.service
@@ -223,6 +227,7 @@ install_ssh_keys() {
         chmod 600 "$HOME/.ssh/id_rsa"
         sudo npm uninstall -g @bitwarden/cli
         rm -rf ~/.config/Bitwarden\ CLI/
+        git remote add ssh-origin git@github.com:alpineQ/linux_configs.git
     else
         ssh-keygen -b 2048 -t rsa -f "$HOME/.ssh/id_rsa" -q -N ""
     fi
@@ -265,7 +270,7 @@ install_server() {
 }
 
 install_desktop() {
-    server
+    install_server
     install_desktop_tools
 }
 
