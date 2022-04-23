@@ -134,7 +134,6 @@ install_tmux() {
     echo "INSTALL LOG: INSTALLING TMUX"
     install_packages tmux
     
-    sudo chsh "$USER" -s "$(which tmux)"
     git clone https://github.com/gpakosz/.tmux.git ~/.tmux -q
     ln -s -f ~/.tmux/.tmux.conf ~
     cp ~/.tmux/.tmux.conf.local ~
@@ -245,7 +244,7 @@ repo_origin() {
     git remote add origin git@github.com:"$GIT_USERNAME"/linux_configs.git
 }
 
-server() {
+install_server() {
     $INSTALL_UPGRADE
     
     install_base_tools
@@ -265,13 +264,13 @@ server() {
     install_ngrok
 }
 
-desktop() {
+install_desktop() {
     server
     install_desktop_tools
 }
 
 if [[ 0 -eq $# ]]; then
-	server
+	install_server
 elif [[ -n "$(declare -f install_"$1")" ]]; then
     "install_$1"
 elif [[ -n $1 &&  -n "$(declare -f "$1")" ]]; then
