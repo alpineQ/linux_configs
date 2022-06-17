@@ -61,9 +61,9 @@ install_npm() {
     if check_installed node; then
         return
     fi
-    sudo npm install -g n
+    sudo npm install --location=global n
     sudo n stable
-    sudo npm install -g npm@latest
+    sudo npm install --location=global npm@latest
 }
 
 install_golang() {
