@@ -48,6 +48,8 @@ install_zsh() {
       echo "INSTALL LOG: Could not install Oh My Zsh" >/dev/stderr
       exit 1
     }
+    git clone https://github.com/zsh-users/zsh-autosuggestions ${ZSH_CUSTOM:-~/.oh-my-zsh/custom}/plugins/zsh-autosuggestions
+    sed 's/plugins=(git)/plugins=(git docker zsh-autosuggestions)/' ~/.zshrc > ~/.zshrc
     cat shell_functions.sh >> ~/.zshrc
 }
 
@@ -218,21 +220,25 @@ repo_origin() {
 install_server() {
     install_upgrade
     
-    #install_base_tools
-    #install_npm
-    #git_login
-    #install_ssh_keys
-    
-    #install_zsh
-    #install_python
+    install_base_tools
     install_vim
     install_tmux
     
     install_docker
     install_docker_compose
-    #install_golang
     install_tldr
-    #install_ngrok
+}
+
+install_developer() {
+    install_server
+    install_npm
+    git_login
+    install_ssh_keys
+    
+    install_zsh
+    install_python
+    install_golang
+    install_ngrok
 }
 
 install_desktop() {
