@@ -14,28 +14,24 @@ check_installed() {
     fi
 }
 
-if check_installed apt; then
-    SEARCH_PKG="apt-cache search"
-    INSTALL_CMD="sudo apt-get -q install -y"
-    INSTALL_UPGRADE="sudo apt-get -q update && sudo apt-get -q upgrade -y"
-elif check_installed pacman; then
-    SEARCH_PKG="pacman -Ss"
-    INSTALL_CMD="sudo pacman -S --noconfirm"
-    INSTALL_UPGRADE="sudo pacman -Su --noconfirm"
-else
+if ! check_installed apt; then
     echo "Not found supported package manager (apt/pacman)"
     exit 1
 fi
+install_upgrade() {
+    sudo apt-get -q update
+    sudo apt-get -q upgrade -y
+}
 
 install_packages() {
     for package in "$@"
     do
         if check_installed "$package"; then
             echo "INSTALL LOG: $package already installed"
-        elif [ -z "$($SEARCH_PKG ^$package\$)" ]; then
-            echo "INSTALL LOG: $package was not found in package manager"
+        elif [ -z "$(apt-cache search ^$package\$)" ]; then
+            echo "INSTALL LOG: $package was not found in APT"
         else
-            $INSTALL_CMD "$package"
+            sudo apt-get -q install -y "$package"
         fi
     done
 }
@@ -86,34 +82,6 @@ install_python() {
     python3 -m pip install pylint --user
 }
 
-install_python_from_source() {
-    local PYTHON_VERSION="3.10.0"
-    local N_PROC=1
-
-    echo "INSTALL LOG: INSTALLING LATEST PYTHON FROM SOURCE"
-    install_packages build-essential gdb lcov libbz2-dev libffi-dev \
-      libgdbm-dev liblzma-dev libncurses5-dev libreadline6-dev \
-      libsqlite3-dev libssl-dev lzma lzma-dev tk-dev uuid-dev zlib1g-dev
-    sudo pip install --upgrade pip
-    
-    wget -q "https://www.python.org/ftp/python/$PYTHON_VERSION/Python-$PYTHON_VERSION.tgz"
-    tar zxf Python-$PYTHON_VERSION.tgz && rm -rf Python-$PYTHON_VERSION.tgz
-    cd Python-$PYTHON_VERSION || exit
-    
-    if check_installed nproc; then
-        N_PROC=$(nproc)
-    fi
-    
-    ./configure --enable-optimizations
-    make -j $N_PROC
-    sudo make -j $N_PROC altinstall
-    cd .. && sudo rm -rf Python-$PYTHON_VERSION
-    
-    sudo ln -s /usr/share/pyshared/lsb_release.py /usr/local/lib/python3.10/site-packages/lsb_release.py
-    sudo ln -sf "$(which python3)" "$PYTHON_BINARY_PATH"
-    python3 -m pip install pylint --user
-}
-
 install_vim() {
     echo "INSTALL LOG: INSTALLING VIM"
     install_packages vim
@@ -159,16 +127,14 @@ install_docker() {
     fi
     echo "INSTALL LOG: INSTALLING DOCKER"
 
-    if check_installed apt; then
-        INSTALL_UPGRADE && install_packages ca-certificates curl gnupg lsb-release
-        curl -fsSL https://download.docker.com/linux/ubuntu/gpg | sudo gpg --dearmor -o /usr/share/keyrings/docker-archive-keyring.gpg
-        echo "deb [arch=$(dpkg --print-architecture) signed-by=/usr/share/keyrings/docker-archive-keyring.gpg] https://download.docker.com/linux/ubuntu \
-            $(lsb_release -cs) stable" | sudo tee /etc/apt/sources.list.d/docker.list > /dev/null
-        
-        INSTALL_UPGRADE && install_packages docker-ce docker-ce-cli containerd.io
-    else
-        install_packages docker
-    fi
+    install_upgrade
+    install_packages ca-certificates curl gnupg lsb-release
+    curl -fsSL https://download.docker.com/linux/ubuntu/gpg | sudo gpg --dearmor -o /usr/share/keyrings/docker-archive-keyring.gpg
+    echo "deb [arch=$(dpkg --print-architecture) signed-by=/usr/share/keyrings/docker-archive-keyring.gpg] https://download.docker.com/linux/ubuntu \
+        $(lsb_release -cs) stable" | sudo tee /etc/apt/sources.list.d/docker.list > /dev/null
+    
+    install_upgrade
+    install_packages docker-ce docker-ce-cli containerd.io
     sudo usermod -aG docker "$USER"
     sudo systemctl enable docker.service
     sudo systemctl enable containerd.service
@@ -250,23 +216,23 @@ repo_origin() {
 }
 
 install_server() {
-    $INSTALL_UPGRADE
+    install_upgrade
     
-    install_base_tools
-    install_npm
-    git_login
-    install_ssh_keys
+    #install_base_tools
+    #install_npm
+    #git_login
+    #install_ssh_keys
     
-    install_zsh
-    install_python
+    #install_zsh
+    #install_python
     install_vim
     install_tmux
     
     install_docker
     install_docker_compose
-    install_golang
+    #install_golang
     install_tldr
-    install_ngrok
+    #install_ngrok
 }
 
 install_desktop() {
