@@ -49,7 +49,7 @@ install_zsh() {
       exit 1
     }
     git clone https://github.com/zsh-users/zsh-autosuggestions ${ZSH_CUSTOM:-~/.oh-my-zsh/custom}/plugins/zsh-autosuggestions
-    sed 's/plugins=(git)/plugins=(git docker zsh-autosuggestions)/' ~/.zshrc > ~/.zshrc
+    sed 's/plugins=(git)/plugins=(git docker zsh-autosuggestions)/' ~/.zshrc | tee ~/.zshrc
     cat shell_functions.sh >> ~/.zshrc
 }
 
