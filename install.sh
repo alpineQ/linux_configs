@@ -117,6 +117,10 @@ install_tldr() {
         echo "INSTALL LOG: tldr already installed"
         return
     fi
+    if check_installed npm; then
+        echo "INSTALL LOG: npm is not installed!"
+        return
+    fi
     echo "INSTALL LOG: INSTALLING TLDR"
     sudo npm install -g tldr
     tldr --update
