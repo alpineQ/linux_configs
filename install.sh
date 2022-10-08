@@ -155,18 +155,6 @@ install_docker_compose() {
     chmod +x $DOCKER_CONFIG/cli-plugins/docker-compose
 }
 
-install_ngrok() {
-    if check_installed ngrok; then
-        echo "INSTALL LOG: ngrok already installed"
-        return
-    fi
-    echo "INSTALL LOG: INSTALLING NGROK"
-    wget -q https://bin.equinox.io/c/4VmDzA7iaHb/ngrok-stable-linux-amd64.zip
-    unzip ngrok-stable-linux-amd64.zip
-    rm -rf ngrok-stable-linux-amd64.zip
-    sudo mv ngrok /usr/bin
-}
-
 install_ssh_keys() {
     if [ -f "$HOME/.ssh/id_rsa" ]; then
         echo "INSTALL LOG: ssh keys loaded"
@@ -214,7 +202,7 @@ git_login() {
 
 install_desktop_tools() {
     echo "INSTALL LOG: INSTALLING DESKTOP TOOLS"
-    install_packages ktorrent gnome-tweak-tool gparted telegram-desktop vlc
+    install_packages gparted telegram-desktop vlc
 }
 
 repo_origin() {
@@ -243,11 +231,10 @@ install_developer() {
     install_zsh
     install_python
     install_golang
-    install_ngrok
 }
 
 install_desktop() {
-    install_server
+    install_developer
     install_desktop_tools
 }
 
