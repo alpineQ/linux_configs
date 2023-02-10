@@ -113,6 +113,13 @@ install_tmux() {
     fi
 }
 
+install_kitty() {
+    echo "INSTALL LOG: INSTALLING KITTY"
+    install packages kitty
+    echo "enabled_layouts grid
+enable_audio_bell no" > .config/kitty/kitty.conf
+}
+
 install_tldr() {
     if check_installed tldr; then
         echo "INSTALL LOG: tldr already installed"
@@ -247,6 +254,7 @@ install_developer() {
     install_ssh_keys
     
     install_zsh
+    install_kitty
     install_python
     install_golang
 }
