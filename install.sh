@@ -60,9 +60,9 @@ install_npm() {
     if check_installed node; then
         return
     fi
-    sudo npm install --location=global n
+    sudo npm install -g n
     sudo n stable
-    sudo npm install --location=global npm@latest
+    sudo npm install -g npm@latest
 }
 
 install_golang() {
@@ -201,8 +201,10 @@ git_login() {
 }
 
 install_vscode() {
+	install_packages curl
     curl https://packages.microsoft.com/keys/microsoft.asc | gpg --dearmor > microsoft.gpg
     sudo install -o root -g root -m 644 microsoft.gpg /etc/apt/trusted.gpg.d/
+    rm -rf microsoft.gpg
     sudo sh -c 'echo "deb [arch=amd64] https://packages.microsoft.com/repos/vscode stable main" > /etc/apt/sources.list.d/vscode.list'
     sudo apt install apt-transport-https
     sudo apt update
