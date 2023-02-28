@@ -117,7 +117,11 @@ install_kitty() {
     echo "INSTALL LOG: INSTALLING KITTY"
     install packages kitty
     echo "enabled_layouts grid
-enable_audio_bell no" > .config/kitty/kitty.conf
+enable_audio_bell no
+font_family      Fira Code
+bold_font        Fira Code Bold
+italic_font      Fira Code Italic
+bold_italic_font Fira Code Bold Italic" > .config/kitty/kitty.conf
 }
 
 install_tldr() {
