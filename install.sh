@@ -199,7 +199,8 @@ install_ssh_keys() {
         chmod 600 "$HOME/.ssh/id_rsa"
         sudo npm uninstall -g @bitwarden/cli
         rm -rf ~/.config/Bitwarden\ CLI/
-        git remote add ssh-origin git@github.com:alpineQ/linux_configs.git
+        git remote rm origin
+        git remote add origin git@github.com:alpineQ/linux_configs.git
     else
         ssh-keygen -b 2048 -t rsa -f "$HOME/.ssh/id_rsa" -q -N ""
     fi
