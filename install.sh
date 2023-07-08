@@ -81,7 +81,13 @@ install_python() {
     echo "alias python=\"$PYTHON_BINARY_PATH\"" >> ~/.bashrc
     echo "alias pip=\"$PYTHON_BINARY_PATH -m pip\"" >> ~/.bashrc
     echo "export PATH=$PATH:$HOME/.local/bin" >> ~/.profile
-    
+    if [ "$SHELL" == "/bin/bash" ]; then
+        source ~/.bashrc
+        source ~/.profile
+    elif [ "$SHELL" == "/usr/bin/zsh" ]; then
+        source ~/.zshrc
+        source ~/.zprofile
+    fi
     python3 -m pip install pylint --user
 }
 
@@ -115,13 +121,14 @@ install_tmux() {
 
 install_kitty() {
     echo "INSTALL LOG: INSTALLING KITTY"
-    install packages kitty
+    install_packages kitty
+    mkdir -p $HOME/.config/kitty
     echo "enabled_layouts grid
 enable_audio_bell no
 font_family      Fira Code
 bold_font        Fira Code Bold
 italic_font      Fira Code Italic
-bold_italic_font Fira Code Bold Italic" > .config/kitty/kitty.conf
+bold_italic_font Fira Code Bold Italic" > $HOME/.config/kitty/kitty.conf
 }
 
 install_tldr() {
@@ -129,9 +136,8 @@ install_tldr() {
         echo "INSTALL LOG: tldr already installed"
         return
     fi
-    if check_installed npm; then
-        echo "INSTALL LOG: npm is not installed!"
-        return
+    if ! check_installed npm; then
+        install_packages npm
     fi
     echo "INSTALL LOG: INSTALLING TLDR"
     sudo npm install -g tldr
@@ -139,13 +145,7 @@ install_tldr() {
 }
 
 install_docker() {
-    if check_installed docker; then
-        echo "INSTALL LOG: docker already installed"
-        return
-    fi
     echo "INSTALL LOG: INSTALLING DOCKER"
-
-    install_upgrade
     install_packages ca-certificates curl gnupg lsb-release
     curl -fsSL https://download.docker.com/linux/ubuntu/gpg | sudo gpg --dearmor -o /usr/share/keyrings/docker-archive-keyring.gpg
     echo "deb [arch=$(dpkg --print-architecture) signed-by=/usr/share/keyrings/docker-archive-keyring.gpg] https://download.docker.com/linux/ubuntu \
@@ -231,7 +231,7 @@ install_desktop_tools() {
     echo "INSTALL LOG: INSTALLING DESKTOP TOOLS"
     install_packages gparted telegram-desktop vlc
     install_vscode
-    install_alacritty
+    install_kitty
 }
 
 repo_origin() {
@@ -244,21 +244,20 @@ install_server() {
     
     install_base_tools
     install_vim
-    install_tmux
+    #install_tmux
     
     install_docker
     install_docker_compose
-    install_tldr
 }
 
 install_developer() {
     install_server
     install_npm
+    install_tldr
     git_login
     install_ssh_keys
     
     install_zsh
-    install_kitty
     install_python
     install_golang
 }
